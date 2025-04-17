@@ -72,7 +72,6 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
             loss.backward()
             optimizer.step()
             
-            # Statistics
             running_loss += loss.item() * inputs.size(0)
             running_corrects += torch.sum(preds == labels.data)
             total_samples += inputs.size(0)
@@ -98,7 +97,6 @@ def train_model(model, train_loader, val_loader, criterion, optimizer, num_epoch
                 _, preds = torch.max(outputs, 1)
                 loss = criterion(outputs, labels)
                 
-                # Statistics
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
                 total_samples += inputs.size(0)
@@ -151,7 +149,6 @@ def evaluate_model(model, test_loader, criterion, device='cuda'):
             _, preds = torch.max(outputs, 1)
             loss = criterion(outputs, labels)
             
-            # Statistics
             running_loss += loss.item() * inputs.size(0)
             running_corrects += torch.sum(preds == labels.data)
             total_samples += inputs.size(0)
@@ -265,7 +262,7 @@ def main(args):
             device=device
         )
         
-        print("Training complete!")
+        print("Training complete")
 
 
         # Load the best model for testing
