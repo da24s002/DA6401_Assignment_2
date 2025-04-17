@@ -1,0 +1,31 @@
+program: "train.py"
+name: "DA6401_Assignment2_sweep_test"
+method: "bayes"
+metric:
+  goal: maximize
+  name: validation_accuracy
+parameters:
+  epochs:
+    values: [10, 15]
+  num_filters:
+    values: [32, 64]
+  batch_size:
+    values: [16, 32, 64]
+  learning_rate: 
+    max: 0.001
+    min: 0.0001
+    distribution: log_uniform_values
+  activation:
+    values: ["ReLU", "GeLU", "SiLU", "Mish"]
+  filter_organization:
+    values: ["same", "double", "half"]
+  data_augmentation:
+    values: ["Yes", "No"]
+  batch_normalization:
+    values: ["Yes", "No"]
+  drop_out:
+    values: [0, 0.2, 0.3]
+  fully_connected_neurons:
+    values: [128, 256]
+  
+
