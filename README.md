@@ -132,6 +132,8 @@ model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, l
 ```
 
 The test accuracy with the best model is logged at the end of the code. <br>
+Link to Github Repository:<br>
+https://github.com/da24s002/DA6401_Assignment_2/tree/main/partB<br>
 
 
 ========================================================================================<br>
