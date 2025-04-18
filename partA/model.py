@@ -29,7 +29,7 @@ class FlexibleCNN(nn.Module):
 
             layers = []
             # Convolutional layer
-            layers.append(nn.Conv2d(in_channel, num_filters[block], kernel_size=filter_size, padding=1))
+            layers.append(nn.Conv2d(in_channel, num_filters[block], kernel_size=filter_size, padding='same'))
             
             # Batch normalization (if enabled)
             if batch_normalization=="Yes":

@@ -29,6 +29,7 @@ test_data_source = "nature_12K/inaturalist_12K/val"
 train_data_split_frac = 0.8
 best_model_name = "best_model.pth"
 num_blocks = 5
+filter_size = 3
 
 
 
@@ -239,7 +240,7 @@ def main(args):
             input_channels=3, ## rgb
             num_classes=num_classes,
             num_filters=num_filters,
-            filter_size=3,
+            filter_size=filter_size,
             activation_fn=activation,
             dense_neurons=fully_connected_neurons,
             drop_out=drop_out,
@@ -304,19 +305,20 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     default_dict = {
-        "wandb_project": "DA6401_Assignment2_sweep",
+        "wandb_project": "DA6401_Assignment_2",
         "wandb_entity": "da24s002-indian-institute-of-technology-madras",
-        "activation":"ReLU",
-        "batch_size":32,
-        "epochs":10,
-        "learning_rate":0.001,
-        "num_filters": 32,
-        "fully_connected_neurons": 128,
-        "filter_organization": "half",
-        "data_augmentation": "Yes",
+        "activation":"GeLU",
+        "batch_size":64,
+        "epochs":15,
+        "learning_rate":0.00015670728191997078,
+        "num_filters": 64,
+        "fully_connected_neurons": 256,
+        "filter_organization": "double",
+        "data_augmentation": "No",
         "batch_normalization": "Yes",
-        "drop_out": 0.3
+        "drop_out": 0
     }
+
 
     
     parser.add_argument("-wp", "--wandb_project", type=str, default=default_dict["wandb_project"], help="Project name used to track experiments in Weights & Biases dashboard.")

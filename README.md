@@ -97,6 +97,7 @@ _________________<br>
 |&nbsp;&nbsp;config.yaml<br>
 |&nbsp;&nbsp;model.py<br>
 |&nbsp;&nbsp;transformation.py<br>
+|&nbsp;&nbsp;best_hyper_param_tuned_model.pth<br>
 |&nbsp;&nbsp;nature_12K<br>
 &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;inaturalist_12K<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;train<br>
@@ -107,6 +108,8 @@ _________________
 ========================================================================================<br>
 The table made in Question4 (Provide a 10×3 grid containing sample images from the test data and predictions made by your best model),<br>
 is made using the inference_code.py python file.<br>
+
+The model used (best model using hyper-params) is named as best_hyper_param_tuned_model.pth<br>
 
 <br>
 Link to Github Repository:<br>
@@ -121,6 +124,23 @@ In order to run the model you can run the following command :<br>
 
 python strategy_3_gradual_unfreezing_resnet50.py <br>
 
+## Setting up the data  <br>
+Please make sure you download the INaturalist dataset from the link: https://storage.googleapis.com/wandb_datasets/nature_12K.zip <br>
+Extract the zip, and paste the folder: nature_12K where your strategy_3_gradual_unfreezing_resnet50.py is:<br>
+Your folder structure should look like this: <br>
+
+_________________<br>
+|&nbsp;&nbsp;strategy_3_gradual_unfreezing_resnet50.py<br>
+|&nbsp;&nbsp;evaluation.py<br>
+|&nbsp;&nbsp;transformation.py<br>
+|&nbsp;&nbsp;phase_training.py<br>
+|&nbsp;&nbsp;best_model_gradual_unfreezing.pth<br>
+|&nbsp;&nbsp;nature_12K<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;inaturalist_12K<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;train<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;val<br>
+_________________
+
 This implements the third strategy discussed in the report, which is gradual unfreezing<br>
 We can freeze or unfreeze layers or add phases of training by modifying the following snippet as we want <br>
 
@@ -130,6 +150,10 @@ model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, l
 model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['layer3','layer4', 'fc'], lr=lr_phase_3, phase_no=3)
 model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['conv1', 'bn1','layer1','layer2','layer3','layer4', 'fc'], lr=lr_phase_4, phase_no=4)
 ```
+
+<br>
+Here the unfreeze_and_train function can take in the names of layers to unfreeze and the learning rates to apply to them. <br>
+The best model is saved with the name best_model_gradual_unfreezing.pth<br>
 
 The test accuracy with the best model is logged at the end of the code. <br>
 Link to Github Repository:<br>

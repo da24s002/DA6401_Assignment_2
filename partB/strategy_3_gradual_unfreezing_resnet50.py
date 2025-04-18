@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from torchvision import models, transforms, datasets
-import os
-from tqdm import tqdm
+from torchvision import models, datasets
+from evaluation import evaluate_model
+from transformation import train_transforms
+from phase_training import train_one_phase
 
 
 data_dir = "nature_12K/inaturalist_12K/train"
@@ -17,132 +18,37 @@ lr_phase_3 = 0.00001
 lr_phase_4 = 0.000001
 
 
-#################################### Function for finding testing accuracy using best saved model till now ################################
-def evaluate_model(model, test_loader, criterion, device='cuda'):
-    """
-    Evaluate the model on the test dataset
-    """
-    model.eval()  # Set model to evaluation mode
-    running_loss = 0.0
-    running_corrects = 0
-    total_samples = 0
-    
-    # Disable gradient calculation for evaluation
-    with torch.no_grad():
-        for inputs, labels in tqdm(test_loader, desc="Testing"):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-            
-            # Forward pass
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
-            loss = criterion(outputs, labels)
-            
-            running_loss += loss.item() * inputs.size(0)
-            running_corrects += torch.sum(preds == labels.data)
-            total_samples += inputs.size(0)
-    
-    test_loss = running_loss / total_samples
-    test_acc = running_corrects.double() / total_samples
-    
-    print(f'Test Loss: {test_loss:.4f} Acc: {test_acc:.4f}')
-    return test_loss, test_acc
-
-################################################################################################################################
 
 
-
-############################################## Define transformations for the training data and create dataset and dataloader  ################################
-
-"""
-Here the first parameter, transformas.Resize(256), resizes the input image dimension to 256x256x3.
-
-transforms.CenterCrop(224), takes a 224x224 patch from it, making the final dimension 224x224x3.
-
-transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])]) is used, since, 
-these specific mean ([0.485, 0.456, 0.406]) and standard deviation ([0.229, 0.224, 0.225]) values are 
-the channel-wise (RGB) statistics calculated from the ImageNet dataset, so we are converting our image to match them for better results.
-
-"""
-
-train_transforms = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
+##################################### unfreeze and train given the layer names #####################################################
+def check_unfreeze(name, list_of_names_to_unfreeze):
+    for unfreeze_name in list_of_names_to_unfreeze:
+        if unfreeze_name in name:
+            return True
+    return False
 
 
-########################################### Function to train for one phase ##################################################################
-def train_one_phase(model, criterion, optimizer, train_loader, val_loader, num_epochs=3, device='cuda'):
-    best_acc = 0.0
-    
-    for epoch in range(num_epochs):
-        print(f'Epoch {epoch+1}/{num_epochs}')
-        print('-' * 10)
+def unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze, lr, phase_no):
+    ############ Phase 1: Train only the fully connected layer ###########
+    print("Phase "+str(phase_no)+": Training")
+    # Make sure all other layers are frozen
+    for name, param in model.named_parameters():
+        if check_unfreeze(name, layer_names_to_unfreeze):
+            # print(name, False)
+            param.requires_grad = True
+        else:
+            # print(name, True)
+            param.requires_grad = False
         
-        # Training phase
-        model.train()
-        running_loss = 0.0
-        running_corrects = 0
-        
-        for inputs, labels in tqdm(train_loader):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-            
-            # Zero the parameter gradients
-            optimizer.zero_grad()
-            
-            # Forward pass
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
-            loss = criterion(outputs, labels)
-            
-            # Backward pass and optimize
-            loss.backward()
-            optimizer.step()
-            
-            running_loss += loss.item() * inputs.size(0)
-            running_corrects += torch.sum(preds == labels.data)
-        
-        train_loss = running_loss / len(train_loader.dataset)
-        train_acc = running_corrects.double() / len(train_loader.dataset)
-        
-        print(f'Train Loss: {train_loss:.4f} Acc: {train_acc:.4f}')
-        
-        # Validation phase
-        model.eval()
-        running_loss = 0.0
-        running_corrects = 0
-        
-        with torch.no_grad():
-            for inputs, labels in tqdm(val_loader):
-                inputs = inputs.to(device)
-                labels = labels.to(device)
-                
-                # Forward pass
-                outputs = model(inputs)
-                _, preds = torch.max(outputs, 1)
-                loss = criterion(outputs, labels)
-                
-                running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
-        
-        val_loss = running_loss / len(val_loader.dataset)
-        val_acc = running_corrects.double() / len(val_loader.dataset)
-        
-        print(f'Val Loss: {val_loss:.4f} Acc: {val_acc:.4f}')
+
+    # Create an optimizer that only updates the fc parameters
+    print()
+    optimizer = optim.Adam(filter(lambda x: x.requires_grad, model.parameters()), lr=lr)
+    train_one_phase(model, criterion, optimizer, train_loader, val_loader, num_epochs=phase_epochs, device=device)
+    return model
 
 
-        # Save the best model
-        if val_acc > best_acc:
-            best_acc = val_acc
-            torch.save(model.state_dict(), 'best_model_gradual_unfreezing.pth')
-            
-        print()
-    
-
-####################################################################################################################################
+#####################################################################################################################################
 def main():
     # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -191,52 +97,12 @@ def main():
     # Define loss function
     criterion = nn.CrossEntropyLoss()
 
-    ############ Phase 1: Train only the fully connected layer ###########
-    print("Phase 1: Training only the fully connected layer")
-    # Make sure all other layers are frozen
-    for name, param in model.named_parameters():
-        if "fc" not in name:  # if the parameter is not in the fc layer
-            param.requires_grad = False
-        else:
-            param.requires_grad = True
+    ####### sequentially unfreeze each part of the network and train for 'num_epochs=3' ###################
+    model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['fc'], lr=lr_phase_1, phase_no=1)
+    model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['layer4', 'fc'], lr=lr_phase_2, phase_no=2)
+    model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['layer3','layer4', 'fc'], lr=lr_phase_3, phase_no=3)
+    model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['conv1', 'bn1','layer1','layer2','layer3','layer4', 'fc'], lr=lr_phase_4, phase_no=4)
 
-    # Create an optimizer that only updates the fc parameters
-    optimizer = optim.Adam(filter(lambda x: x.requires_grad, model.parameters()), lr=lr_phase_1)
-    train_one_phase(model, criterion, optimizer, train_loader, val_loader, num_epochs=phase_epochs, device=device)
-
-    ########### Phase 2: Unfreeze layer4 ###############
-    print("Phase 2: Unfreezing layer4")
-    for name, param in model.named_parameters():
-        if "layer4" in name or "fc" in name:
-            param.requires_grad = True
-        else:
-            param.requires_grad = False
-
-    # Create an optimizer with different learning rates
-    
-    optimizer = optim.Adam(filter(lambda x: x.requires_grad, model.parameters()), lr=lr_phase_2)
-    train_one_phase(model, criterion, optimizer, train_loader, val_loader, num_epochs=phase_epochs, device=device)
-
-    ################## Phase 3: Unfreeze layer3 ###############
-    print("Phase 3: Unfreezing layer3")
-    for name, param in model.named_parameters():
-        if "layer3" in name or "layer4" in name or "fc" in name:
-            param.requires_grad = True
-        else:
-            param.requires_grad = False
-
-    # Create an optimizer with different learning rates
-    optimizer = optim.Adam(filter(lambda x: x.requires_grad, model.parameters()), lr=lr_phase_3)
-    train_one_phase(model, criterion, optimizer, train_loader, val_loader, num_epochs=phase_epochs, device=device)
-
-    ############### Phase 4: Unfreeze all remaining layers ###############
-    print("Phase 4: Unfreezing all remaining layers")
-    for param in model.parameters():
-        param.requires_grad = True
-
-    # Create an optimizer with different learning rates
-    optimizer = optim.Adam(model.parameters(), lr=lr_phase_4)
-    train_one_phase(model, criterion, optimizer, train_loader, val_loader, num_epochs=phase_epochs, device=device)
 
     print("Gradual unfreezing training complete")
     ####################################################################################################################################
