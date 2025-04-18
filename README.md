@@ -122,6 +122,14 @@ In order to run the model you can run the following command :<br>
 python strategy_3_gradual_unfreezing_resnet50.py <br>
 
 This implements the third strategy discussed in the report, which is gradual unfreezing<br>
+We can freeze or unfreeze layers or add phases of training by modifying the following snippet as we want <br>
+
+```python
+model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['fc'], lr=lr_phase_1, phase_no=1)
+model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['layer4', 'fc'], lr=lr_phase_2, phase_no=2)
+model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['layer3','layer4', 'fc'], lr=lr_phase_3, phase_no=3)
+model = unfreeze_and_train(model, criterion, train_loader, val_loader, device, layer_names_to_unfreeze=['conv1', 'bn1','layer1','layer2','layer3','layer4', 'fc'], lr=lr_phase_4, phase_no=4)
+```
 
 The test accuracy with the best model is logged at the end of the code. <br>
 
