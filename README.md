@@ -1,7 +1,7 @@
 # DA6401_Assignment_2
 CNN assignment for DA6401 course
 
-### Part A:
+# Part A:
 
 Implementation of a CNN model having 5 blocks
 
