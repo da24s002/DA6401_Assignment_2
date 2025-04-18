@@ -114,3 +114,16 @@ https://github.com/da24s002/DA6401_Assignment_2/tree/main/partA<br>
 
 ==========================================================================================================================================<br>
 
+# Part B<br>
+Taking a pre-trained model (ResNet50 in our case), and fine tuning it for the INaturalist dataset.<br>
+
+In order to run the model you can run the following command :<br>
+
+python strategy_3_gradual_unfreezing_resnet50.py <br>
+
+This implements the third strategy discussed in the report, which is gradual unfreezing<br>
+
+The test accuracy with the best model is logged at the end of the code. <br>
+
+
+========================================================================================<br>
