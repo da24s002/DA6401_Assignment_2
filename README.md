@@ -177,3 +177,5 @@ https://github.com/da24s002/DA6401_Assignment_2/tree/main/partB<br>
 
 
 ========================================================================================<br>
+
+Wandb report link: https://wandb.ai/da24s002-indian-institute-of-technologymadras/DA6401_Assignment_2/reports/DA6401-Assignment-2--VmlldzoxMjMxODAzNA
