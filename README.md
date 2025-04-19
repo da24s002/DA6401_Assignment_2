@@ -102,7 +102,15 @@ _________________<br>
 &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;inaturalist_12K<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;train<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;val<br>
-_________________
+_________________ <br>
+The train.py file is the file containing the main method, and is the entry point to the training where we can pass our hyper-params<br>
+via command line arguments. <br>
+config.yaml is the hyper-parameter sweeping file, containing all options explored for hyper-param tuning. <br>
+model.py contains the cnn model definition which is being read by train.py to train the network. <br>
+best_hyper_param_tuned_model.pth is the best model I have found using hyper-param tuning, this can be loaded with model.py<br>
+and inferences can be made on any data without training.<br>
+transformation.py contains the transformation applied to the input image, if we want different transformations to be applied, we can<br>
+add it to this file.<br>
 
 
 ========================================================================================<br>
@@ -139,7 +147,15 @@ _________________<br>
 &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;inaturalist_12K<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;train<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;val<br>
-_________________
+_________________<br>
+
+The strategy_3_gradual_unfreezing_resnet50.py file is the file containing the main method, and is the entry point to the training where we have used the ResNet50 fine-tuning logic<br>
+best_model_gradual_unfreezing.pth is the best model I have found using strategy 3<br>
+transformation.py contains the transformation applied to the input image, if we want different transformations to be applied, we can<br>
+add it to this file.<br>
+evaluation.py contains the method for calculating test accuracy after fine-tuning<br>
+phase_training.py file contains the method which can be used to train different phases in strategy 3, we can pass the layers we want to unfreeze<br>
+and this function will only train those layers.<br>
 
 This implements the third strategy discussed in the report, which is gradual unfreezing<br>
 We can freeze or unfreeze layers or add phases of training by modifying the following snippet as we want <br>
